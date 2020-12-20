@@ -10,7 +10,7 @@ resource "random_id" "sql" {
   byte_length = "8"
 }
 
-resource "google_sql_database_instance" "spoke-db" {
+resource "google_sql_database_instance" "spoke-sql" {
   name                = random_id.sql.hex
   region              = var.region
   database_version    = "POSTGRES_12"
@@ -36,11 +36,16 @@ resource "random_password" "sql-password" {
   length = 16
 }
 
-resource "google_sql_user" "spoke-db-user" {
+resource "google_sql_user" "spoke-sql-user" {
   name            = "sqluser"
-  instance        = google_sql_database_instance.spoke-db.name
+  instance        = google_sql_database_instance.spoke-sql.name
   password        = random_password.sql-password.result
   deletion_policy = "ABANDON"
+}
+
+resource "google_sql_database" "spoke-db" {
+  name     = "spoke-db"
+  instance = google_sql_database_instance.spoke-sql.name
 }
 
 resource "google_cloud_run_service" "spoke-server" {
@@ -61,12 +66,16 @@ resource "google_cloud_run_service" "spoke-server" {
           value = "pg"
         }
         env {
+          name  = "DB_NAME"
+          value = google_sql_database.spoke-db.name
+        }
+        env {
           name  = "DB_USER"
-          value = google_sql_user.spoke-db-user.name
+          value = google_sql_user.spoke-sql-user.name
         }
         env {
           name  = "DB_PASSWORD"
-          value = google_sql_user.spoke-db-user.password
+          value = google_sql_user.spoke-sql-user.password
         }
         env {
           name  = "SESSION_SECRET"
@@ -78,7 +87,7 @@ resource "google_cloud_run_service" "spoke-server" {
         }
         env {
           name  = "CLOUD_SQL_CONNECTION_NAME"
-          value = google_sql_database_instance.spoke-db.connection_name
+          value = google_sql_database_instance.spoke-sql.connection_name
         }
         env {
           name  = "KNEX_MIGRATION_DIR"
@@ -93,7 +102,7 @@ resource "google_cloud_run_service" "spoke-server" {
 
     metadata {
       annotations = {
-        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.spoke-db.connection_name
+        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.spoke-sql.connection_name
         "run.googleapis.com/client-name"        = "terraform"
       }
     }
