@@ -43,6 +43,10 @@ resource "google_cloud_run_service" "spoke-server" {
           name = "KNEX_MIGRATION_DIR"
           value = "/spoke/build/server/migrations/"
         }
+        env {
+          name = "PASSPORT_STRATEGY"
+          value = "local"
+        }
       }
     }
 
