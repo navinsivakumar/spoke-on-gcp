@@ -41,5 +41,5 @@ resource "google_sql_database_instance" "spoke-db" {
 # are allowed to reuse instance names.
 resource "random_id" "sql" {
   prefix = "spoke-sql"
-  byte_lengh = "8"
+  byte_length = "8"
 }
