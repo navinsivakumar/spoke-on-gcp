@@ -100,6 +100,13 @@ resource "google_cloud_run_service" "spoke-server" {
   }
 }
 
+resource "google_cloud_run_service_iam_member" "allUsers" {
+  service  = google_cloud_run_service.spoke-server.name
+  location = google_cloud_run_service.spoke-server.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
 output "spoke_url" {
   value = google_cloud_run_service.spoke-server.status[0].url
 }
