@@ -3,6 +3,10 @@ provider "google" {
   region  = var.region
 }
 
+output "spoke_url" {
+  value = google_cloud_run_service.spoke-server.status[0].url
+}
+
 resource "google_cloud_run_service" "spoke-server" {
   name     = "spoke-server"
   location = var.region
