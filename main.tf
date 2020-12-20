@@ -3,6 +3,59 @@ provider "google" {
   region  = var.region
 }
 
+resource "google_cloud_run_service" "spoke-server" {
+  name     = "spoke-server"
+  location = var.region
+
+  template {
+    spec {
+      containers {
+        image = var.spoke_container
+        env {
+          name = "JOBS_SAME_PROCESS"
+          value = "1"
+        }
+        env {
+          name = "DB_TYPE"
+          value = "pg"
+        }
+        env {
+          name = "DB_USER"
+          value = google_sql_user.spoke-db-user.name
+        }
+        env {
+          name = "DB_PASSWORD"
+          value = google_sql_user.spoke-db-user.password
+        }
+        env {
+          name = "SESSION_SECRET"
+          value = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        }
+        env {
+          name = "DB_SOCKET_PATH"
+          value = "/cloudsql"
+        }
+        env {
+          name = "CLOUD_SQL_CONNECTION_NAME"
+          value = google_sql_database_instance.spoke-db.connection_name
+        }
+        env {
+          name = "KNEX_MIGRATION_DIR"
+          value = "/spoke/build/server/migrations/"
+        }
+      }
+    }
+
+    metadata {
+      annotations = {
+        "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.spoke-db.connection_name
+        "run.googleapis.com/client-name"        = "terraform"
+      }
+    }
+  }
+  autogenerate_revision_name = true
+}
+
 resource "google_sql_user" "spoke-db-user" {
   name = "sqluser"
   instance = google_sql_database_instance.spoke-db.name

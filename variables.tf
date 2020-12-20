@@ -12,3 +12,8 @@ variable "project" {
   type        = string
   description = "Project in which Terraform will create resources."
 }
+
+variable "spoke_container" {
+  type        = string
+  description = "Name of the Spoke container to deploy. Should be a full container URL of the form 'gcr.io/$PROJECT/$NAME[:$COMMIT_SHA]'."
+}
