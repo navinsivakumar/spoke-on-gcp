@@ -10,6 +10,5 @@ variable "region" {
 
 variable "project" {
   type        = string
-  default     = ""
   description = "Project in which Terraform will create resources."
 }
