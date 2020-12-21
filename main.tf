@@ -48,6 +48,10 @@ resource "google_sql_database" "spoke-db" {
   instance = google_sql_database_instance.spoke-sql.name
 }
 
+resource "google_project_service" "run-service" {
+  service = "run.googleapis.com"
+}
+
 resource "google_cloud_run_service" "spoke-server" {
   name                       = "spoke-server"
   location                   = var.region
@@ -108,6 +112,8 @@ resource "google_cloud_run_service" "spoke-server" {
       }
     }
   }
+
+  depends_on = [google_project_service.run-service]
 }
 
 resource "google_cloud_run_service_iam_member" "allUsers" {
