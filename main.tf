@@ -102,6 +102,7 @@ resource "google_cloud_run_service" "spoke-server" {
 
     metadata {
       annotations = {
+        "autoscaling.knative.dev/maxScale"      = "1000"
         "run.googleapis.com/cloudsql-instances" = google_sql_database_instance.spoke-sql.connection_name
         "run.googleapis.com/client-name"        = "terraform"
       }
