@@ -52,6 +52,11 @@ resource "google_project_service" "run-service" {
   service = "run.googleapis.com"
 }
 
+# TODO: see if there's a way to generate this as a sensitive value
+resource "random_id" "session-secret" {
+  byte_length = 20
+}
+
 resource "google_cloud_run_service" "spoke-server" {
   name                       = "spoke-server"
   location                   = var.region
@@ -83,7 +88,7 @@ resource "google_cloud_run_service" "spoke-server" {
         }
         env {
           name  = "SESSION_SECRET"
-          value = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+          value = random_id.session-secret.b64_std
         }
         env {
           name  = "DB_SOCKET_PATH"
