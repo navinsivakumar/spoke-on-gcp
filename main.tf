@@ -128,6 +128,19 @@ resource "google_cloud_run_service_iam_member" "allUsers" {
   member   = "allUsers"
 }
 
+resource "google_cloud_run_domain_mapping" "spoke-domain" {
+  name     = var.custom_domain
+  location = var.region
+
+  spec {
+    route_name = google_cloud_run_service.spoke-server.name
+  }
+
+  metadata {
+    namespace = var.project
+  }
+}
+
 # Required by spoke-server at runtime to connect to SQL instance
 resource "google_project_service" "sql-admin-service" {
   service = "sqladmin.googleapis.com"
@@ -135,4 +148,8 @@ resource "google_project_service" "sql-admin-service" {
 
 output "spoke_url" {
   value = google_cloud_run_service.spoke-server.status[0].url
+}
+
+output "domain_record" {
+  value = google_cloud_run_domain_mapping.spoke-domain.status[0].resource_records[0]
 }
