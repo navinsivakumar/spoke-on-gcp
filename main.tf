@@ -106,6 +106,10 @@ resource "google_cloud_run_service" "spoke-server" {
           name  = "PASSPORT_STRATEGY"
           value = "local"
         }
+        env {
+          name = "BASE_URL"
+          value = "https://${var.custom_domain}"
+        }
       }
     }
 
