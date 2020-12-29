@@ -67,6 +67,38 @@ resource "google_project_iam_member" "sql-client" {
   member = "serviceAccount:${google_service_account.spoke-sa.email}"
 }
 
+# GCS bucket names must be globally unique.
+resource "random_uuid" "bucket-suffix" { }
+
+# TODO: only generate bucket if user doesn't specify one
+resource "google_storage_bucket" "spoke-export" {
+  name                        = "spoke-export-${random_uuid.bucket-suffix.result}"
+  # Destroy all objects during testing.
+  force_destroy               = true
+  location                    = upper(var.region)
+  uniform_bucket_level_access = true
+}
+
+# In production, google_storage_bucket_iam_policy might be betterso we have no
+# extra permissions hanging around.
+resource "google_storage_bucket_iam_binding" "spoke-export-create" {
+  bucket = google_storage_bucket.spoke-export.name
+  role = "roles/storage.objectCreator"
+
+  members = [
+    "serviceAccount:${google_service_account.spoke-sa.email}"
+  ]
+}
+
+resource "google_storage_bucket_iam_binding" "spoke-export-view" {
+  bucket = google_storage_bucket.spoke-export.name
+  role = "roles/storage.objectViewer"
+
+  members = [
+    "serviceAccount:${google_service_account.spoke-sa.email}"
+  ]
+}
+
 resource "google_cloud_run_service" "spoke-server" {
   name                       = "spoke-server"
   location                   = var.region
@@ -128,7 +160,7 @@ resource "google_cloud_run_service" "spoke-server" {
         }
         env {
           name  = "GCP_STORAGE_BUCKET_NAME"
-          value = var.gcs_bucket
+          value = google_storage_bucket.spoke-export.name
         }
       }
     }
