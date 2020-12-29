@@ -110,6 +110,14 @@ resource "google_cloud_run_service" "spoke-server" {
           name = "BASE_URL"
           value = "https://${var.custom_domain}"
         }
+        env {
+          name  = "GCP_ACCESS_AVAILABLE"
+          value = "true"
+        }
+        env {
+          name  = "GCP_STORAGE_BUCKET_NAME"
+          value = var.gcs_bucket
+        }
       }
     }
 
