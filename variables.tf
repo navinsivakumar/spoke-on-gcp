@@ -20,7 +20,7 @@ variable "spoke_container" {
 
 # TODO: consider making this optional.
 variable "custom_domain" {
-  type = string
+  type        = string
   description = "Domain which will be mapped to the Spoke deployment. If the domain is not registered through Google Domains or Cloud Domains, you must verify domain ownership, e.g. by running `gcloud domains verify`."
 }
 
