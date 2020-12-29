@@ -57,6 +57,16 @@ resource "random_id" "session-secret" {
   byte_length = 20
 }
 
+resource "google_service_account" "spoke-sa" {
+  account_id   = "spoke-sa"
+  display_name = "Spoke Service Account"
+}
+
+resource "google_project_iam_member" "sql-client" {
+  role   = "roles/cloudsql.client"
+  member = "serviceAccount:${google_service_account.spoke-sa.email}"
+}
+
 resource "google_cloud_run_service" "spoke-server" {
   name                       = "spoke-server"
   location                   = var.region
@@ -64,6 +74,8 @@ resource "google_cloud_run_service" "spoke-server" {
 
   template {
     spec {
+      service_account_name = google_service_account.spoke-sa.email
+
       containers {
         image = var.spoke_container
         env {
