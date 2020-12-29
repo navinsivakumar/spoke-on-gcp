@@ -107,7 +107,7 @@ resource "google_cloud_run_service" "spoke-server" {
           value = "local"
         }
         env {
-          name = "BASE_URL"
+          name  = "BASE_URL"
           value = "https://${var.custom_domain}"
         }
       }
