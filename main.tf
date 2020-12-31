@@ -62,6 +62,21 @@ resource "google_service_account" "spoke-sa" {
   display_name = "Spoke Service Account"
 }
 
+data "google_iam_policy" "spoke-token-creator" {
+  binding {
+    role    = "roles/iam.serviceAccountTokenCreator"
+    members = [
+      "serviceAccount:${google_service_account.spoke-sa.email}",
+    ]
+  }
+}
+
+# The service account needs to sign URLs as itself for export.
+resource "google_service_account_iam_policy" "spoke-sa-iam" {
+  service_account_id = google_service_account.spoke-sa.name
+  policy_data        = data.google_iam_policy.spoke-token-creator.policy_data
+}
+
 resource "google_project_iam_member" "sql-client" {
   role   = "roles/cloudsql.client"
   member = "serviceAccount:${google_service_account.spoke-sa.email}"
@@ -70,7 +85,8 @@ resource "google_project_iam_member" "sql-client" {
 # GCS bucket names must be globally unique.
 resource "random_uuid" "bucket-suffix" { }
 
-# TODO: only generate bucket if user doesn't specify one
+# TODO: give user the option of specifying a pre-existing bucket or disabling
+# export altogether.
 resource "google_storage_bucket" "spoke-export" {
   name                        = "spoke-export-${random_uuid.bucket-suffix.result}"
   # Destroy all objects during testing.
@@ -79,7 +95,7 @@ resource "google_storage_bucket" "spoke-export" {
   uniform_bucket_level_access = true
 }
 
-# In production, google_storage_bucket_iam_policy might be betterso we have no
+# In production, google_storage_bucket_iam_policy might be better so we have no
 # extra permissions hanging around.
 resource "google_storage_bucket_iam_binding" "spoke-export-create" {
   bucket = google_storage_bucket.spoke-export.name

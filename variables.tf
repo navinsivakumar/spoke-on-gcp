@@ -23,8 +23,3 @@ variable "custom_domain" {
   type        = string
   description = "Domain which will be mapped to the Spoke deployment. If the domain is not registered through Google Domains or Cloud Domains, you must verify domain ownership, e.g. by running `gcloud domains verify`."
 }
-
-variable "gcs_bucket" {
-  type        = string
-  description = "Bucket to save exports in."
-}
