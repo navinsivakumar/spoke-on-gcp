@@ -218,6 +218,11 @@ resource "google_project_service" "sql-admin-service" {
   service = "sqladmin.googleapis.com"
 }
 
+# Required at runtime for Docs script import
+resource "google_project_service" "docs-service" {
+  service = "docs.googleapis.com"
+}
+
 output "spoke_url" {
   value = google_cloud_run_service.spoke-server.status[0].url
 }
